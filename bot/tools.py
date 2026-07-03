@@ -12,6 +12,7 @@ from bot.state import _last_ui, _run_hashes
 from bot.utils import _sanitize_html
 
 
+
 def make_agent(mcp_servers, scheduler=None, user_id=None, chat_id=None, chat=None, bot=None):
     memories = load_memories()
     memory_context = ""
@@ -182,7 +183,7 @@ def make_agent(mcp_servers, scheduler=None, user_id=None, chat_id=None, chat=Non
                 return f"Screenshot failed: {err}"
             with open(path, "rb") as f:
                 if caption:
-                    await chat.send_photo(photo=f, caption=_sanitize_html(caption), parse_mode=ParseMode.HTML)
+                    await chat.send_photo(photo=f, caption=caption)
                 else:
                     await chat.send_photo(photo=f)
             return "✅ Screenshot sent to user."
@@ -246,14 +247,14 @@ def make_agent(mcp_servers, scheduler=None, user_id=None, chat_id=None, chat=Non
     instructions = f"""You are a helpful assistant with browser automation, file system, shell access, macOS control, and task scheduling.
 
 Format your responses using ONLY these Telegram HTML tags (NO other HTML allowed):
-• &lt;b&gt;bold&lt;/b&gt; for headings/emphasis
-• &lt;i&gt;italic&lt;/i&gt; for subtle emphasis
-• &lt;u&gt;underline&lt;/u&gt;
-• &lt;s&gt;strikethrough&lt;/s&gt;
-• &lt;code&gt;code&lt;/code&gt; for commands/filenames
-• &lt;pre&gt;code block&lt;/pre&gt; for multi-line blocks
-• &lt;a href="url"&gt;link text&lt;/a&gt; for links
-• &lt;span class="tg-spoiler"&gt;spoiler&lt;/span&gt;
+• <b>bold</b> for headings/emphasis
+• <i>italic</i> for subtle emphasis
+• <u>underline</u>
+• <s>strikethrough</s>
+• <code>code</code> for commands/filenames
+• <pre>code block</pre> for multi-line blocks
+• <a href="url">link text</a> for links
+• <span class="tg-spoiler">spoiler</span>
 Do NOT use: &lt;h1&gt;-&lt;h6&gt;, &lt;p&gt;, &lt;div&gt;, &lt;ul&gt;/&lt;ol&gt;/&lt;li&gt;, &lt;hr&gt;, &lt;br&gt;, &lt;blockquote&gt;, &lt;table&gt;, &lt;style&gt;, or any other HTML tag.
 
 CRITICAL: Once you complete a user's request, DO NOT repeat the same action. If a tool call succeeds, trust the result and move on to producing your final output. Do not "verify" by running the same tool again.

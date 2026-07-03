@@ -16,9 +16,7 @@ def _sanitize_html(text: str) -> str:
         tag = m.group(1).lower().split()[0]
         if tag in _ALLOWED_TAGS or tag.startswith("/"):
             return full
-        if tag in ("p", "div", "span", "h1", "h2", "h3", "h4", "h5", "h6"):
-            return ""
-        if tag in ("ul", "ol", "li", "hr", "br", "blockquote"):
+        if tag in ("p", "div", "span", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "hr", "br", "blockquote"):
             return ""
         return ""
     return re.sub(r'</?(\w+)[^>]*>', _replace_tag, text)

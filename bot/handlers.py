@@ -50,10 +50,13 @@ async def run_agent(chat_id: int, user_id: int, text: str, context: ContextTypes
                         try:
                             await progress_msg.edit_text(_sanitize_html(text), parse_mode=ParseMode.HTML)
                         except Exception:
-                            pass
+                            try:
+                                await progress_msg.edit_text(text)
+                            except Exception:
+                                pass
 
         hooks = _ProgressHooks()
-        result = await Runner.run(agent, full_text, max_turns=50, hooks=hooks)
+        result = await Runner.run(agent, full_text, max_turns=150, hooks=hooks)
         response = result.final_output.strip() if result.final_output else ""
         if not response or response == "[STOP]":
             try:
@@ -66,24 +69,31 @@ async def run_agent(chat_id: int, user_id: int, text: str, context: ContextTypes
         asyncio.create_task(update_memories(text, response))
         asyncio.create_task(_update_summary_if_needed(user_id))
     except asyncio.CancelledError:
-        try:
-            await progress_msg.delete()
-        except Exception:
-            pass
+        if progress_msg:
+            try:
+                await progress_msg.delete()
+            except Exception:
+                pass
         raise
     except MaxTurnsExceeded:
         err = "The task required more steps than allowed and couldn't be completed. Try breaking it into smaller steps."
-        try:
-            await progress_msg.edit_text(_sanitize_html(err), parse_mode=ParseMode.HTML)
-        except Exception:
+        if progress_msg:
+            try:
+                await progress_msg.edit_text(err)
+            except Exception:
+                pass
+        else:
             await reply_func(err)
     except Exception as e:
         import traceback
         traceback.print_exc()
         err = f"Error: {e}"
-        try:
-            await progress_msg.edit_text(_sanitize_html(err), parse_mode=ParseMode.HTML)
-        except Exception:
+        if progress_msg:
+            try:
+                await progress_msg.edit_text(err)
+            except Exception:
+                pass
+        else:
             await reply_func(err)
 
 
