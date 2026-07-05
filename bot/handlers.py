@@ -2,6 +2,7 @@ import asyncio
 from pathlib import Path
 
 from agents import Runner, MaxTurnsExceeded
+from agents.exceptions import ModelBehaviorError
 from agents.lifecycle import RunHooksBase, RunContextWrapper
 from agents.models.interface import ModelResponse
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ForceReply
@@ -77,6 +78,15 @@ async def run_agent(chat_id: int, user_id: int, text: str, context: ContextTypes
         raise
     except MaxTurnsExceeded:
         err = "The task required more steps than allowed and couldn't be completed. Try breaking it into smaller steps."
+        if progress_msg:
+            try:
+                await progress_msg.edit_text(err)
+            except Exception:
+                pass
+        else:
+            await reply_func(err)
+    except ModelBehaviorError:
+        err = "I tried using a tool that isn't available. Let me try a different approach."
         if progress_msg:
             try:
                 await progress_msg.edit_text(err)

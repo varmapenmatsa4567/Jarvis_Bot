@@ -8,23 +8,30 @@ from bot.config import browser_server, filesystem_server, peekaboo_server, model
 from bot.task_scheduler import SchedulerEngine
 
 
-async def post_init(app: Application):
-    existing = subprocess.run(
-        ["lsof", "-i", "tcp:9222"],
-        capture_output=True, text=True, timeout=5,
-    )
-    if "Google Chrome" not in existing.stdout:
-        chrome_proc = await asyncio.create_subprocess_exec(
-            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-            "--remote-debugging-port=9222",
-            "--user-data-dir=/tmp/chrome-mcp",
-            stdout=asyncio.subprocess.DEVNULL,
-            stderr=asyncio.subprocess.DEVNULL,
+async def _ensure_chrome(app: Application):
+    for attempt in range(15):
+        existing = subprocess.run(
+            ["lsof", "-i", "tcp:9222"],
+            capture_output=True, text=True, timeout=5,
         )
-        app.bot_data["chrome_process"] = chrome_proc
+        if "Google Chrome" in existing.stdout or "chrome" in existing.stdout.lower():
+            return
+        if attempt == 0:
+            proc = await asyncio.create_subprocess_exec(
+                "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+                "--remote-debugging-port=9222",
+                "--user-data-dir=/tmp/chrome-mcp",
+                stdout=asyncio.subprocess.DEVNULL,
+                stderr=asyncio.subprocess.DEVNULL,
+            )
+            app.bot_data["chrome_process"] = proc
         await asyncio.sleep(2)
-    else:
-        app.bot_data["chrome_process"] = None
+    print("[Chrome] Failed to start Chrome with remote debugging on port 9222")
+
+
+async def post_init(app: Application):
+    app.bot_data["chrome_process"] = None
+    await _ensure_chrome(app)
 
     manager = await MCPServerManager([browser_server, filesystem_server, peekaboo_server]).__aenter__()
     app.bot_data["mcp_manager"] = manager
