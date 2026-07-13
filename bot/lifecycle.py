@@ -14,19 +14,20 @@ async def _ensure_chrome(app: Application):
             ["lsof", "-i", "tcp:9222"],
             capture_output=True, text=True, timeout=5,
         )
-        if "Google Chrome" in existing.stdout or "chrome" in existing.stdout.lower():
+        if "Brave" in existing.stdout or "brave" in existing.stdout.lower():
             return
         if attempt == 0:
             proc = await asyncio.create_subprocess_exec(
-                "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+                "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
                 "--remote-debugging-port=9222",
-                "--user-data-dir=/tmp/chrome-mcp",
+                "--user-data-dir=/Users/chiranjeevip/Library/Application Support/BraveSoftware/Brave-Browser",
+                "--profile-directory=Default",
                 stdout=asyncio.subprocess.DEVNULL,
                 stderr=asyncio.subprocess.DEVNULL,
             )
             app.bot_data["chrome_process"] = proc
         await asyncio.sleep(2)
-    print("[Chrome] Failed to start Chrome with remote debugging on port 9222")
+    print("[Chrome] Failed to start Brave with remote debugging on port 9222")
 
 
 async def post_init(app: Application):
